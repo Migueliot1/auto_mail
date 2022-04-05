@@ -1,24 +1,30 @@
 import urllib.request, urllib.parse, urllib.error
 import ssl
 import json
+import yagmail
+import sqlite3
 
-from hidden import get_key
+from hidden import get_key, get_email
 
 class Email:
-    '''Represent'''
+    '''Represents email address which sends emails to other addresses.'''
 
-    def __init__(self, sender, receiver, subject, body):
-        '''Initialize an instance from sender's email, receiver email, 
+    email_data = get_email()
+
+    def __init__(self, receiver_name ,receiver_email, subject, body):
+        '''Initialize an instance from receiver's name, receiver's email, 
         subject of mail message and its body.'''
-        self.sender = sender
-        self.receiver = receiver
+        self.receiver_name = receiver_name
+        self.receiver_email = receiver_email
         self.subject = subject
         self.body = body
     
     def send(self):
         '''Handles sending email to the user.'''
-      
-        return None
+        email = yagmail.SMTP(user=self.email_data[0], password=self.email_data[1])
+        email.send(to=self.receiver_email,
+                    subject=self.subject,
+                    contents=self.body)
 
 
 class NewsFeed:
@@ -80,19 +86,31 @@ class NewsFeed:
         return data_json
 
         
-class DBInfo:
-    '''The class to handle extracting users' data.'''
+class DataHandler:
+    '''The class to handle extracting users' data from SQLite file.'''
 
     def __init__(self, path):
-        '''Constructor with database's filepath string parameter.'''
+        '''Constructor with SQLite database's filepath string parameter.'''
 
         self.path = path
 
     def get_data(self):
-        '''Returns users' names, emails and interests.'''
+        '''Returns list of tuples (name, surname, email, interest).'''
 
-        names = None
-        emails = None
-        interests = None
+        # Open SQLite file
+        conn = sqlite3.connect(self.path)
+        cursor = conn.cursor()
 
-        return (names, emails, interests)
+        # Select needed data
+        cursor.execute('''
+        SELECT Emails.name, Emails.surname, Emails.email, Interests.interest
+        FROM Emails JOIN Interests
+        ON Emails.interest_id = Interests.id
+        ''')
+
+        # Place needed data into list and return it
+        users = list()
+        for row in cursor:
+            users.append(row)
+
+        return users
