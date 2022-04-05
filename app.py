@@ -1,16 +1,23 @@
+from db_hidden import get_db_name
 import funct
+import datetime
+
+# Format for datetime
+date_format = '%Y-%m-%d'
 
 # Grabbing the data from the SQLite file
-db = funct.DataHandler('emails_receivers.db')
+db = funct.DataHandler(get_db_name())
 data = db.get_data()
 
 # Send emails to users
 for user in data:
     # Get the news
+    today = datetime.datetime.now()
+    yesterday = today - datetime.timedelta(days=1)
     news_feed = funct.NewsFeed(interest=user[3].replace(' ', '-'),
                                 language='en',
-                                from_date='2022-04-05',
-                                to_date='2022-04-06')
+                                from_date=today.strftime(date_format),
+                                to_date=yesterday.strftime(date_format))
     
     raw_letter_body = news_feed.get_body() # Getting a big list of tuples (title of article, link to it)
 
