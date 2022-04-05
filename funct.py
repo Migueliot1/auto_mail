@@ -5,6 +5,7 @@ import yagmail
 import sqlite3
 
 from hidden import get_key, get_email
+from db_hidden import get_data
 
 class Email:
     '''Represents email address which sends emails to other addresses.'''
@@ -102,11 +103,8 @@ class DataHandler:
         cursor = conn.cursor()
 
         # Select needed data
-        cursor.execute('''
-        SELECT Emails.name, Emails.surname, Emails.email, Interests.interest
-        FROM Emails JOIN Interests
-        ON Emails.interest_id = Interests.id
-        ''')
+        command = get_data()
+        cursor.execute(command)
 
         # Place needed data into list and return it
         users = list()
